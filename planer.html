@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Планер 2027</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#f4f6fb;color:#1a1a1a;padding-bottom:20px}
+header{background:linear-gradient(135deg,#6366f1,#ec4899,#f59e0b);color:#fff;padding:18px}
+header h1{font-size:1.2rem}
+#dt{font-size:0.8rem;opacity:.9;margin-top:3px}
+.wrap{max-width:1100px;margin:0 auto;padding:14px 10px}
+.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 3px 14px rgba(0,0,0,.06)}
+.card-year{border-top:4px solid #a855f7}
+.card-month{border-top:4px solid #ec4899}
+h2{font-size:1rem;margin-bottom:10px}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px}
+.tab{padding:6px 11px;border:none;border-radius:14px;font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;background:#e5e7eb;color:#475569;flex-shrink:0}
+.tab.on{background:#6366f1;color:#fff}
+.bh{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.bh div{text-align:center;font-size:.68rem;font-weight:800;color:#64748b;padding:3px 0}
+.bg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:14px}
+.bd{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:.78rem;background:#f8fafc;color:#334155;position:relative;cursor:pointer;user-select:none}
+.bd.em{background:transparent;cursor:default}
+.bd.td{background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff!important;font-weight:800}
+.bd.sel{outline:2px solid #ec4899;outline-offset:-1px;font-weight:800;background:#fce7f3;color:#831843!important}
+.bd.td.sel{outline-color:#fff;background:linear-gradient(135deg,#6366f1,#ec4899)!important;color:#fff!important}
+.bd.dot::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#10b981}
+.bd.td.dot::after{background:#fff}
+.blk{border-radius:9px;padding:10px;margin-bottom:10px}
+.goals{background:#fdf2f8;border-left:4px solid #ec4899}
+.quote{background:#fffbeb;border-left:4px solid #f59e0b}
+.blk h3{font-size:.82rem;margin-bottom:6px}
+textarea{width:100%;min-height:70px;padding:7px;border:2px solid #e5e7eb;border-radius:7px;font-family:inherit;font-size:.82rem;resize:vertical;outline:none}
+textarea:focus{border-color:#ec4899}
+.qt{font-style:italic;font-size:.82rem;color:#78350f;line-height:1.45;margin-bottom:4px}
+.qa{font-size:.72rem;color:#b45309;text-align:right;font-weight:700}
+.day-blk{background:#f0fdf4;border-left:4px solid #10b981;border-radius:9px;padding:10px;margin-bottom:10px}
+.day-blk.notes{background:#fff7ed;border-left-color:#f97316}
+.day-blk h3{font-size:.85rem;margin-bottom:8px;color:#1a1a1a}
+.af{display:flex;gap:4px;margin-bottom:8px}
+.af input,.af textarea{flex:1;padding:7px 9px;border:2px solid #e5e7eb;border-radius:7px;font-family:inherit;font-size:.82rem;outline:none;resize:none;background:#fff}
+.btn{color:#fff;border:none;padding:7px 11px;border-radius:7px;cursor:pointer;font-weight:800;font-family:inherit;font-size:.9rem}
+.b-tasks{background:linear-gradient(135deg,#10b981,#06b6d4)}
+.b-notes{background:linear-gradient(135deg,#f97316,#f59e0b)}
+.tl{list-style:none}
+.ti{display:flex;align-items:center;gap:7px;padding:5px;border-radius:7px;margin-bottom:2px}
+.ti input[type=checkbox]{width:16px;height:16px;accent-color:#10b981;flex-shrink:0}
+.ti span{flex:1;font-size:.82rem;word-break:break-word}
+.ti.dn span{text-decoration:line-through;color:#9ca3af}
+.dl2{background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:1rem;padding:2px 5px;border-radius:5px;flex-shrink:0}
+.emp{text-align:center;color:#9ca3af;font-size:.78rem;padding:8px;font-style:italic}
+.note{background:#fff;border-left:3px solid #f97316;padding:6px 9px;border-radius:6px;margin-bottom:4px;position:relative}
+.note p{font-size:.8rem;white-space:pre-wrap;word-break:break-word;padding-right:20px;color:#7c2d12}
+.note .dl2{position:absolute;top:2px;right:2px}
+.year{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:7px}
+.mm{background:#fafbff;border-radius:9px;padding:7px;border-top:4px solid #a855f7}
+.mm.c0{border-top-color:#ef4444}.mm.c1{border-top-color:#f97316}
+.mm.c2{border-top-color:#f59e0b}.mm.c3{border-top-color:#84cc16}
+.mm.c4{border-top-color:#10b981}.mm.c5{border-top-color:#06b6d4}
+.mm.c6{border-top-color:#3b82f6}.mm.c7{border-top-color:#6366f1}
+.mm.c8{border-top-color:#8b5cf6}.mm.c9{border-top-color:#a855f7}
+.mm.c10{border-top-color:#ec4899}.mm.c11{border-top-color:#f43f5e}
+.mm-t{font-size:.7rem;font-weight:800;text-align:center;margin-bottom:4px;text-transform:uppercase}
+.mm-w{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:2px}
+.mm-w span{text-align:center;font-size:.5rem;color:#9ca3af;font-weight:700}
+.mm-d{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.mm-d span{text-align:center;font-size:.6rem;padding:2px 0;border-radius:3px;color:#4b5563;position:relative}
+.mm-d span.em{visibility:hidden}
+.mm-d span.td{background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff!important;font-weight:800}
+#err{display:none;background:#ef4444;color:#fff;padding:12px;font-weight:bold}
+</style>
+</head>
+<body>
+
+<div id="err"></div>
+
+<header>
+  <h1>📔 Мой планер 2027</h1>
+  <div id="dt"></div>
+</header>
+
+<div class="wrap">
+
+  <div class="card card-year">
+    <h2>📅 2027 — весь год</h2>
+    <div class="year" id="year"></div>
+  </div>
+
+  <div class="card card-month">
+    <h2>🗓 Подробно по месяцам</h2>
+    <div class="tabs" id="tabs"></div>
+
+    <div class="blk quote">
+      <h3>💭 Цитата месяца</h3>
+      <p class="qt" id="qt"></p>
+      <p class="qa" id="qa"></p>
+    </div>
+
+    <div class="blk goals">
+      <h3>🎯 Цели на месяц</h3>
+      <textarea id="goals" placeholder="Цели на месяц..."></textarea>
+    </div>
+
+    <div class="bh" id="bh"></div>
+    <div class="bg" id="bg"></div>
+
+    <div class="day-blk">
+      <h3 id="dayTitle">✅ Задачи на день</h3>
+      <div class="af">
+        <input type="text" id="tIn" placeholder="Что сделать?">
+        <button type="button" class="btn b-tasks" id="tAdd">+</button>
+      </div>
+      <ul class="tl" id="tList"></ul>
+    </div>
+
+    <div class="day-blk notes">
+      <h3 id="noteTitle">📝 Заметки на день</h3>
+      <div class="af">
+        <textarea id="nX" placeholder="Заметка..." rows="2"></textarea>
+        <button type="button" class="btn b-notes" id="nAdd">+</button>
+      </div>
+      <div id="nList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var Y=2027;
+var MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+var RB=['#ef4444','#f97316','#f59e0b','#84cc16','#10b981','#06b6d4','#3b82f6','#8b5cf6','#ec4899'];
+var QT=[['Иногда нужно потерять всё, чтобы найти себя настоящую.','Лия Арден'],['Любовь — это не слабость. Это самая большая сила, которая у нас есть.','Эмма Скотт'],['Ты сильнее, чем кажется. Особенно когда весь мир против тебя.','Кристина Старк'],['Каждый выбирает свой путь. Главное — не бояться идти по нему до конца.','Лия Стеффи'],['Судьба любит тех, кто не сдаётся даже тогда, когда сил почти не осталось.','Лия Арден'],['Мы не выбираем, кого любить. Но выбираем, за кого бороться.','Эмма Скотт'],['Крылья вырастают у тех, кто пережил падение и всё равно решил лететь.','Кристина Старк'],['Дружба — это тоже любовь, просто без крыльев и без слов.','Лия Стеффи'],['Тени отступают перед теми, кто несёт свет внутри себя.','Лия Арден'],['Иногда достаточно одного человека, чтобы весь мир стал другим.','Эмма Скотт'],['Боль проходит. Следы остаются. Но ты идёшь дальше — и это главное.','Кристина Старк'],['Всё случается вовремя. Даже если кажется, что уже слишком поздно.','Лия Стеффи']];
+
+function E(id){return document.getElementById(id)}
+function ESC(s){var d=document.createElement('div');d.textContent=String(s);return d.innerHTML}
+function LD(k,f){try{var r=localStorage.getItem(k);if(!r)return f;var p=JSON.parse(r);return p===null?f:p}catch(e){return f}}
+function SV(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+var today=new Date();
+var curM=(today.getFullYear()===Y)?today.getMonth():0;
+var selDay=(today.getFullYear()===Y&&today.getMonth()===curM)?today.getDate():1;
+
+E('dt').textContent=today.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function dkey(m,d){return Y+'-'+m+'-'+d}
+
+var TASKS=LD('p27t',[]);
+if(!(TASKS instanceof Array))TASKS=[];
+var NOTES=LD('p27n',[]);
+if(!(NOTES instanceof Array))NOTES=[];
+
+function hasData(m,d){
+  var k=dkey(m,d);
+  for(var i=0;i<TASKS.length;i++)if(TASKS[i].date===k)return true;
+  for(var j=0;j<NOTES.length;j++)if(NOTES[j].date===k)return true;
+  return false;
+}
+
+function renderYear(){
+  var html='';var isY=(today.getFullYear()===Y);
+  for(var m=0;m<12;m++){
+    var fd=new Date(Y,m,1);var sd=fd.getDay()-1;if(sd<0)sd=6;
+    var dim=new Date(Y,m+1,0).getDate();
+    var cells='';
+    for(var i=0;i<sd;i++)cells+='<span class="em"></span>';
+    for(var d=1;d<=dim;d++){
+      var dt=new Date(Y,m,d);var dw=dt.getDay();
+      var wk=(dw===0||dw===6);
+      var td=(isY&&today.getMonth()===m&&today.getDate()===d);
+      var c='';if(td)c+=' td';
+      var st=wk&&!td?' style="color:'+RB[d%RB.length]+';font-weight:800"':'';
+      cells+='<span class="'+c+'"'+st+'>'+d+'</span>';
+    }
+    html+='<div class="mm c'+m+'"><div class="mm-t">'+MN[m]+'</div><div class="mm-w"><span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span></div><div class="mm-d">'+cells+'</div></div>';
+  }
+  E('year').innerHTML=html;
+}
+
+function renderTabs(){
+  var h='';
+  for(var i=0;i<12;i++)h+='<button type="button" class="tab'+(i===curM?' on':'')+'" data-m="'+i+'">'+MN[i]+'</button>';
+  E('tabs').innerHTML=h;
+  var b=E('tabs').getElementsByTagName('button');
+  for(var j=0;j<b.length;j++){
+    b[j].onclick=function(){
+      curM=parseInt(this.getAttribute('data-m'),10);
+      selDay=1;
+      renderTabs();renderBig();renderSide();renderDay();
+    };
+  }
+}
+
+function renderBig(){
+  E('bh').innerHTML='<div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>';
+  var fd=new Date(Y,curM,1);var sd=fd.getDay()-1;if(sd<0)sd=6;
+  var dim=new Date(Y,curM+1,0).getDate();
+  var isM=(today.getFullYear()===Y&&today.getMonth()===curM);
+  var h='';
+  for(var i=0;i<sd;i++)h+='<div class="bd em"></div>';
+  for(var d=1;d<=dim;d++){
+    var dt=new Date(Y,curM,d);var dw=dt.getDay();
+    var wk=(dw===0||dw===6);
+    var td=(isM&&today.getDate()===d);
+    var sel=(d===selDay);
+    var dot=hasData(curM,d);
+    var c='';
+    if(td)c+=' td';
+    if(sel)c+=' sel';
+    if(dot)c+=' dot';
+    var st=wk&&!td?' style="color:'+RB[d%RB.length]+';font-weight:800"':'';
+    h+='<div class="bd'+c+'"'+st+' data-d="'+d+'">'+d+'</div>';
+  }
+  E('bg').innerHTML=h;
+  var b=E('bg').querySelectorAll('[data-d]');
+  for(var j=0;j<b.length;j++){
+    b[j].onclick=function(){
+      selDay=parseInt(this.getAttribute('data-d'),10);
+      renderBig();renderDay();
+    };
+  }
+}
+
+function renderSide(){
+  var s=localStorage.getItem('p27g_'+Y+'_'+curM);
+  E('goals').value=s?s:'';
+  E('qt').textContent='«'+QT[curM][0]+'»';
+  E('qa').textContent='— '+QT[curM][1];
+}
+
+E('goals').oninput=function(){localStorage.setItem('p27g_'+Y+'_'+curM,this.value)};
+
+function renderTasks(){
+  var L=E('tList');
+  var k=dkey(curM,selDay);
+  var idxs=[];
+  for(var i=0;i<TASKS.length;i++)if(TASKS[i].date===k)idxs.push(i);
+  if(idxs.length===0)L.innerHTML='<div class="emp">Нет задач на этот день</div>';
+  else{
+    var h='';
+    for(var a=0;a<idxs.length;a++){
+      var i=idxs[a];var t=TASKS[i];
+      h+='<li class="ti'+(t.done?' dn':'')+'"><input type="checkbox"'+(t.done?' checked':'')+' data-i="'+i+'"><span>'+ESC(t.text)+'</span><button type="button" class="dl2" data-i="'+i+'">×</button></li>';
+    }
+    L.innerHTML=h;
+  }
+  var cb=L.querySelectorAll('input');
+  for(var c=0;c<cb.length;c++)cb[c].onchange=function(){
+    var i=parseInt(this.getAttribute('data-i'),10);
+    TASKS[i].done=!TASKS[i].done;
+    SV('p27t',TASKS);renderTasks();
+  };
+  var db=L.querySelectorAll('button');
+  for(var n=0;n<db.length;n++)db[n].onclick=function(){
+    var i=parseInt(this.getAttribute('data-i'),10);
+    TASKS.splice(i,1);SV('p27t',TASKS);renderTasks();renderBig();
+  };
+}
+
+E('tAdd').onclick=function(){
+  var t=E('tIn').value.trim();if(!t)return;
+  TASKS.push({date:dkey(curM,selDay),text:t,done:false});
+  SV('p27t',TASKS);E('tIn').value='';renderTasks();renderBig();
+};
+
+function renderNotes(){
+  var L=E('nList');
+  var k=dkey(curM,selDay);
+  var idxs=[];
+  for(var i=0;i<NOTES.length;i++)if(NOTES[i].date===k)idxs.push(i);
+  if(idxs.length===0){L.innerHTML='<div class="emp">Пусто</div>';return}
+  var h='';
+  for(var a=0;a<idxs.length;a++){
+    var i=idxs[a];
+    h+='<div class="note"><p>'+ESC(NOTES[i].text)+'</p><button type="button" class="dl2" data-i="'+i+'">×</button></div>';
+  }
+  L.innerHTML=h;
+  var b=L.querySelectorAll('button');
+  for(var j=0;j<b.length;j++)b[j].onclick=function(){
+    var i=parseInt(this.getAttribute('data-i'),10);
+    NOTES.splice(i,1);SV('p27n',NOTES);renderNotes();renderBig();
+  };
+}
+
+E('nAdd').onclick=function(){
+  var t=E('nX').value.trim();if(!t)return;
+  NOTES.unshift({date:dkey(curM,selDay),text:t});
+  SV('p27n',NOTES);E('nX').value='';renderNotes();renderBig();
+};
+
+function renderDay(){
+  var title=selDay+' '+MN[curM];
+  E('dayTitle').textContent='✅ Задачи — '+title;
+  E('noteTitle').textContent='📝 Заметки — '+title;
+  renderTasks();renderNotes();
+}
+
+try{
+  renderYear();renderTabs();renderBig();renderSide();renderDay();
+}catch(e){
+  var b=E('err');b.style.display='block';b.textContent='⚠️ '+e.message;
+}
+</script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').catch(function(e) { console.log(e); });
+  });
+}
+  </>
+
+</body>
+</html>
