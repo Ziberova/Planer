@@ -2,7 +2,7 @@
   "name": "Мой планер 2027",
   "short_name": "Планер",
   "description": "Личный планер на 2027 год",
-  "start_url": "./index.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#6366f1",
   "theme_color": "#6366f1",
