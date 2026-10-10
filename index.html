@@ -3,16 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="manifest" href="manifest.json">
+<title>Планер 2027</title>
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6366f1">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Планер 2027</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,sans-serif;background:#f4f6fb;color:#1a1a1a;padding-bottom:20px}
 header{background:linear-gradient(135deg,#6366f1,#ec4899,#f59e0b);color:#fff;padding:18px}
-header h1{font-size:1.2rem}
+.h-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.h-left{flex:1;min-width:0}
+header h1{font-size:1.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #dt{font-size:0.8rem;opacity:.9;margin-top:3px}
+.h-icons{display:flex;gap:6px;flex-shrink:0}
+.h-ico{width:38px;height:38px;border:none;border-radius:10px;background:rgba(255,255,255,0.22);color:#fff;font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:background .15s}
+.h-ico:active{background:rgba(255,255,255,0.4)}
 .wrap{max-width:1100px;margin:0 auto;padding:14px 10px}
 .card{background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 3px 14px rgba(0,0,0,.06)}
 .card-year{border-top:4px solid #a855f7}
@@ -73,15 +78,43 @@ textarea:focus{border-color:#ec4899}
 .mm-d span.em{visibility:hidden}
 .mm-d span.td{background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff!important;font-weight:800}
 #err{display:none;background:#ef4444;color:#fff;padding:12px;font-weight:bold}
+/* ЭКРАН ЗАГРУЗКИ */
+#splash{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#6366f1,#ec4899,#f59e0b);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:9999;transition:opacity .5s ease;font-family:system-ui,sans-serif}
+#splash.hide{opacity:0;pointer-events:none}
+#splash .sp-icon{font-size:5.5rem;margin-bottom:15px;animation:pop .8s cubic-bezier(.68,-.55,.27,1.55)}
+#splash .sp-title{font-size:1.5rem;font-weight:800;margin-bottom:6px;letter-spacing:.5px}
+#splash .sp-sub{font-size:.85rem;opacity:.85;margin-bottom:28px}
+#splash .sp-dots{display:flex;gap:8px}
+#splash .sp-dots span{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite ease-in-out}
+#splash .sp-dots span:nth-child(2){animation-delay:.2s}
+#splash .sp-dots span:nth-child(3){animation-delay:.4s}
+@keyframes pop{0%{transform:scale(.3) rotate(-15deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
 </style>
 </head>
 <body>
 
+<div id="splash">
+  <div class="sp-icon">📔</div>
+  <div class="sp-title">Мой планер 2027</div>
+  <div class="sp-sub">Загрузка...</div>
+  <div class="sp-dots"><span></span><span></span><span></span></div>
+</div>
+
 <div id="err"></div>
 
 <header>
-  <h1>📔 Мой планер 2027</h1>
-  <div id="dt"></div>
+  <div class="h-top">
+    <div class="h-left">
+      <h1>📔 Мой планер 2027</h1>
+      <div id="dt"></div>
+    </div>
+    <div class="h-icons">
+      <button type="button" class="h-ico" id="btnImport" title="Загрузить данные">📥</button>
+      <button type="button" class="h-ico" id="btnExport" title="Скачать данные">📤</button>
+    </div>
+  </div>
+  <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
 </header>
 
 <div class="wrap">
@@ -299,18 +332,89 @@ function renderDay(){
   renderTasks();renderNotes();
 }
 
+E('btnExport').onclick=function(){
+  var data={app:'planer-2027',version:1,exported:new Date().toISOString(),tasks:TASKS,notes:NOTES,goals:{}};
+  for(var i=0;i<12;i++){
+    var g=localStorage.getItem('p27g_'+Y+'_'+i);
+    if(g)data.goals['p27g_'+Y+'_'+i]=g;
+  }
+  var text=JSON.stringify(data,null,2);
+  var blob=new Blob([text],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var d=new Date();
+  var dd=(d.getDate()<10?'0':'')+d.getDate();
+  var mm=(d.getMonth()+1<10?'0':'')+(d.getMonth()+1);
+  a.href=url;
+  a.download='planer-2027-'+d.getFullYear()+'-'+mm+'-'+dd+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  alert('📤 Файл сохранён в «Скачанные файлы»!');
+};
+
+E('btnImport').onclick=function(){
+  E('fileInput').click();
+};
+
+E('fileInput').onchange=function(){
+  if(!this.files||!this.files[0])return;
+  var file=this.files[0];
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(data.app!=='planer-2027'){alert('❌ Это не файл планера');return}
+      if(!(data.tasks instanceof Array)||!(data.notes instanceof Array)){alert('❌ Файл повреждён');return}
+      if(!confirm('Заменить все текущие данные?\n\nВ файле: задач — '+data.tasks.length+', заметок — '+data.notes.length+'\n\nТекущие задачи и заметки будут удалены.'))return;
+      TASKS=data.tasks;
+      NOTES=data.notes;
+      SV('p27t',TASKS);
+      SV('p27n',NOTES);
+      if(data.goals){
+        for(var k in data.goals){
+          if(k.indexOf('p27g_')===0)localStorage.setItem(k,data.goals[k]);
+        }
+      }
+      renderYear();renderTabs();renderBig();renderSide();renderDay();
+      alert('✅ Данные загружены!');
+    }catch(err){
+      alert('❌ Ошибка чтения: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+  this.value='';
+};
+
+function hideSplash(){
+  var s=E('splash');
+  if(!s)return;
+  s.classList.add('hide');
+  setTimeout(function(){
+    if(s && s.parentNode)s.parentNode.removeChild(s);
+  },600);
+}
+
 try{
   renderYear();renderTabs();renderBig();renderSide();renderDay();
 }catch(e){
   var b=E('err');b.style.display='block';b.textContent='⚠️ '+e.message;
 }
+
+window.addEventListener('load',function(){
+  setTimeout(hideSplash,1500);
+});
+setTimeout(hideSplash,2500);
 </script>
+
+<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('sw.js').catch(function(e) { console.log(e); });
   });
 }
-  </>
+</script>
 
 </body>
 </html>
